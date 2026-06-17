@@ -1,0 +1,85 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md", ".claude/CLAUDE.md", ".opencode/scope.md", ".opencode/findings.md"],
+
+  "command": {
+
+    "scope": {
+      "description": "Show current engagement scope and authorization",
+      "template": "Read AGENTS.md and summarize: target domain, owner, authorization status, scope, out-of-scope items, and test start date. Flag if any placeholder [BRACKETS] were not filled in."
+    },
+
+    "vulns": {
+      "description": "List all confirmed vulnerabilities",
+      "template": "Read AGENTS.md and targets/[TARGET]/reports/findings.md. List every CONFIRMED vulnerability ordered CRITICAL → HIGH → MEDIUM → LOW. For each: severity, title, endpoint, MITRE TTP, one-line fix. Then list all UNCONFIRMED items still to verify."
+    },
+
+    "report": {
+      "description": "Generate full pentest report",
+      "template": "Read AGENTS.md and targets/[TARGET]/reports/findings.md. Produce a complete penetration test report with: 1) Executive summary (3 bullets), 2) Each finding with severity/endpoint/evidence/PoC/fix, ordered by severity, 3) MITRE ATT&CK matrix coverage, 4) Remediation priority list. Format for technical audience."
+    },
+
+    "audit": {
+      "description": "Security audit of all probe scripts",
+      "template": "Review all Python scripts in targets/[TARGET]/probes/ and tools/. Check for: hardcoded credentials that should be env vars, unsafe shell injection, insecure HTTP usage, overly broad scope creep beyond authorized target, missing error handling that could crash and leak data. Report findings by severity."
+    },
+
+    "next": {
+      "description": "What to test next — open questions from AGENTS.md",
+      "template": "Read AGENTS.md section 'Open Questions' and 'What NOT to Re-test'. Suggest the highest-value next test to run, what script to write or run, and what evidence to collect. Be specific — include the exact endpoint, payload, and what a positive result looks like."
+    },
+
+    "probe": {
+      "description": "Check if remote probe is running",
+      "template": "Run: ssh [EC2_USER]@[EC2_HOST] -i ~/.ssh/[KEY].pem \"systemctl is-active [SERVICE_NAME] && ps aux | grep probe | grep -v grep && tail -5 ~/probe.log\" — Report: is the service active, what PID, how many accounts created (last log line count), any errors."
+    },
+
+    "stats": {
+      "description": "Get live probe statistics from EC2",
+      "template": "SSH to the EC2 server and run: python3 ~/probe_report.py — Report the full stats: total attempts, success count, rejection count, CSRF errors, success rate, CPU/RAM usage, uptime."
+    },
+
+    "discord": {
+      "description": "Send manual Discord stats report now",
+      "template": "SSH to the EC2 server and run: python3 ~/probe_report.py — This sends the current stats to the Discord webhook immediately. Confirm the HTTP 204 response."
+    },
+
+    "recon": {
+      "description": "Passive reconnaissance checklist",
+      "template": "Perform passive recon on [TARGET_DOMAIN]: 1) Check response headers for server version, framework hints, CDN, 2) Check CORS/ACAO header for origin IP leak, 3) Check robots.txt and sitemap.xml, 4) Check common paths (/.env, /admin, /api, /phpinfo.php, /.git/config, /config.json), 5) Check SSL cert for alt names. Use requests only — no active scanning tools. Report all findings."
+    },
+
+    "headers": {
+      "description": "Analyze HTTP response headers for security issues",
+      "template": "Make a GET request to https://[TARGET_DOMAIN]/ with allow_redirects=False. Dump all response headers. Check for: missing Content-Security-Policy, missing HSTS, missing X-Frame-Options, X-Content-Type-Options, Referrer-Policy. Check for information disclosure: Server, X-Powered-By, X-Generator, Via, X-Cache. Check CORS: Access-Control-Allow-Origin — is it wildcard or a specific IP (origin IP leak)? Report all issues."
+    },
+
+    "session": {
+      "description": "Analyze session and cookie security",
+      "template": "Log in with a test account and inspect the Set-Cookie headers. Check: HttpOnly flag, Secure flag, SameSite attribute, cookie domain scope, cookie name (reveals framework), token entropy. Also check: does GET /login create a new session file? (session exhaustion vector). Report all weaknesses."
+    },
+
+    "throttle": {
+      "description": "Test rate limiting and throttle bypass",
+      "template": "Run 20 rapid POST requests to the login endpoint with wrong credentials — check if 429 appears. Then run 20 more with rotating X-Forwarded-For headers — check if 429 is bypassed. Report: rate limit threshold (if any), whether XFF bypass works, what the throttle key is based on (IP, session, user)."
+    },
+
+    "massassign": {
+      "description": "Test mass assignment on register/update endpoints",
+      "template": "POST to the registration endpoint with extra fields: is_admin=1, role=admin, admin=true, email_verified_at=2024-01-01, verified=1. Check if the request is accepted (302 to dashboard = accepted). Then log in and probe admin routes to verify if the field was stored. Report what extra fields were accepted and whether they had any effect."
+    }
+
+  },
+
+  "permission": {
+    "bash": {
+      "python *.py": "ask",
+      "python3 *.py": "ask",
+      "ssh *": "ask",
+      "scp *": "ask",
+      "curl *": "ask",
+      "git *": "allow",
+      "*": "ask"
+    }
+  }
+}
