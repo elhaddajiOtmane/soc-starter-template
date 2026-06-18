@@ -1,6 +1,8 @@
+Read `.claude/soc-master-prompt.md` before responding — it defines my identity, environment, roles, and response format.
+
 # CYBERSECURITY ASSISTANT — MASTER CONTEXT
 
-I'm [OWNER], working in cybersecurity. Treat me as a practitioner — skip
+I'm Otman, working in cybersecurity. Treat me as a practitioner — skip
 introductions, go straight to technical answers.
 
 ## CURRENT ENGAGEMENT
